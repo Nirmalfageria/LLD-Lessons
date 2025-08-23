@@ -1,24 +1,24 @@
-#include "Restaurant.h"
-#include<bits/stdc++.h>
-using namespace std;
-
+#ifndef RESTAURANTMANAGER_H
 #define RESTAURANTMANAGER_H
 
-class RestaurantManager {
+#include "../models/Restaurant.h"
+#include <bits/stdc++.h>
+using namespace std;
 
+class RestaurantManager {
     vector<Restaurant*> restaurants;
-    static RestaurantManager* instance;
-    static mutex mtx;
+
+    // Private constructor for singleton
     RestaurantManager() {}
-    public: 
+
+public:
+    // Delete copy/move to enforce singleton
+    RestaurantManager(const RestaurantManager&) = delete;
+    RestaurantManager& operator=(const RestaurantManager&) = delete;
+
     static RestaurantManager* getInstance() {
-        if(instance == nullptr) {
-            lock_guard<mutex> lock(mtx);
-            if(instance == nullptr) {
-                instance = new RestaurantManager();
-            }
-        }
-        return instance;
+        static RestaurantManager instance; // C++11 thread-safe
+        return &instance;
     }
 
     void addRestaurant(Restaurant* restaurant) {
@@ -27,18 +27,21 @@ class RestaurantManager {
 
     vector<Restaurant*> getByLocation(const string& location) {
         vector<Restaurant*> result;
-        transform(location.begin(), location.end(), location.begin(), ::tolower);
-        for(auto& restaurant : restaurants) {
+
+        // Make a lowercase copy of location
+        string loc = location;
+        transform(loc.begin(), loc.end(), loc.begin(), ::tolower);
+
+        for (auto& restaurant : restaurants) {
             string restLocation = restaurant->getLocation();
             transform(restLocation.begin(), restLocation.end(), restLocation.begin(), ::tolower);
-            if(restLocation == location) {
+
+            if (restLocation == loc) {
                 result.push_back(restaurant);
             }
         }
         return result;
     }
-
 };
 
-RestaurantManager* RestaurantManager::instance = nullptr;
-mutex RestaurantManager::mtx;
+#endif // RESTAURANTMANAGER_H

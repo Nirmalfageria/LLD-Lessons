@@ -1,22 +1,24 @@
-#include<bits/stdc++.h>
+#ifndef ORDER_MANAGER_H
+#define ORDER_MANAGER_H
+
+#include <vector>
+#include <iostream>
+#include "../models/Order.h"
 using namespace std;
 
-#include "Order.h"
-#include "DeliveryOrder.h"
-#include "PickupOrder.h"
-
 class OrderManager {
+private:
     vector<Order*> orders;
     static OrderManager* instance;
-    static mutex mtx;
-    OrderManager() {}
+
+    OrderManager() {
+        // Private Constructor
+    }
+
 public:
     static OrderManager* getInstance() {
-        if (instance == nullptr) {
-            lock_guard<mutex> lock(mtx);
-            if (instance == nullptr) {
-                instance = new OrderManager();
-            }
+        if (!instance) {
+            instance = new OrderManager();
         }
         return instance;
     }
@@ -25,17 +27,16 @@ public:
         orders.push_back(order);
     }
 
-    void processOrders() {
+    void listOrders() {
+        cout << "\n--- All Orders ---" << endl;
         for (auto order : orders) {
-            // Process each order
-        }
-    }
-
-    ~OrderManager() {
-        for (auto order : orders) {
-            delete order;
+            cout << order->getType() << " order for " << order->getUser()->getName()
+                    << " | Total: ₹" << order->getTotal()
+                    << " | At: " << order->getScheduled() << endl;
         }
     }
 };
+
 OrderManager* OrderManager::instance = nullptr;
-mutex OrderManager::mtx;
+
+#endif // ORDER_MANAGER_H

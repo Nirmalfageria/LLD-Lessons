@@ -1,13 +1,16 @@
-#include<bits/stdc++.h>
-using namespace std;    
+#ifndef PICKUPORDER_H
+#define PICKUPORDER_H
 
+#include <string>
 #include "Order.h"
 
 class PickupOrder : public Order {
-    private:
+private:
     string restaurantAddress;
+
 public:
-    PickupOrder(const string& address) : restaurantAddress(address) {}
+    PickupOrder(const string& address) 
+        : Order(), restaurantAddress(address) {}   // ✅ call base constructor
 
     string getType() const override {
         return "Pickup";
@@ -20,4 +23,6 @@ public:
     void setRestaurantAddress(const string& address) {
         restaurantAddress = address;
     }
-};  
+};
+
+#endif // PICKUPORDER_H
