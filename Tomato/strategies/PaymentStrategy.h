@@ -1,10 +1,14 @@
-#ifndef PAYMENTSTRATEGY_H
-#define PAYMENTSTRATEGY_H
+#ifndef PAYMENT_STRATEGY_H
+#define PAYMENT_STRATEGY_H
+
+#include <iostream>
+#include <string>
+using namespace std;
 
 class PaymentStrategy {
 public:
-    virtual bool pay(double amount) = 0; // Pure virtual function
-    virtual ~PaymentStrategy() = default; // Virtual destructor
+    virtual void pay(double amount) = 0;
+    virtual ~PaymentStrategy() {}
 };
 
-#endif
+#endif // PAYMENT_STRATEGY_H

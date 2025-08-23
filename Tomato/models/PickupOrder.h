@@ -1,28 +1,30 @@
-#ifndef PICKUPORDER_H
-#define PICKUPORDER_H
+#ifndef PICKUP_ORDER_H
+#define PICKUP_ORDER_H
 
-#include <string>
 #include "Order.h"
+using namespace std;
 
 class PickupOrder : public Order {
 private:
     string restaurantAddress;
 
 public:
-    PickupOrder(const string& address) 
-        : Order(), restaurantAddress(address) {}   // ✅ call base constructor
+    PickupOrder() {
+        restaurantAddress = "";
+    }
 
     string getType() const override {
         return "Pickup";
     }
 
+    //Getter and Setters
+    void setRestaurantAddress(const string& addr) {
+        restaurantAddress = addr;
+    }
+
     string getRestaurantAddress() const {
         return restaurantAddress;
     }
-
-    void setRestaurantAddress(const string& address) {
-        restaurantAddress = address;
-    }
 };
 
-#endif // PICKUPORDER_H
+#endif // PICKUP_ORDER_H

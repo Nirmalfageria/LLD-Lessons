@@ -1,53 +1,59 @@
 #ifndef RESTAURANT_H
 #define RESTAURANT_H
 
-#include <bits/stdc++.h>
-#include "MenuItems.h"
+#include <iostream>
+#include <string>
+#include <vector>
+#include "MenuItem.h"
 using namespace std;
 
 class Restaurant {
 private:
-    inline static int nextId = 1;
-    int id;
+    static int nextRestaurantId;
+    int restaurantId;
     string name;
-    vector<MenuItem*> menu;
     string location;
+    vector<MenuItem> menu;
 
 public:
-    Restaurant(string name, string location) : name(name), location(location) {
-        this->id = nextId++;
+    Restaurant(const string& name, const string& location) {
+        this->name = name;
+        this->location = location;
+        this->restaurantId = ++nextRestaurantId;
     }
 
     ~Restaurant() {
-        for (auto item : menu) {
-            delete item;
-        }
-        cout << "Restaurant " << name << " destroyed." << endl;
+        // Optional: just for clarity or debug
+        cout << "Destroying Restaurant: " << name << ", and clearing its menu." << endl;
+        menu.clear();
     }
 
-    int getId() const {
-        return id;
-    }
-
+    //Getters and setters
     string getName() const {
         return name;
+    }
+
+    void setName(const string &n) {
+        name = n;
     }
 
     string getLocation() const {
         return location;
     }
 
-    void addMenuItem(MenuItem* item) {
+    void setLocation(const string &loc) {
+        location = loc;
+    }
+
+    void addMenuItem(const MenuItem &item) {
         menu.push_back(item);
     }
 
-    void displayMenu() const {
-        cout << "Menu for " << name << " :" << endl;
-        for (const auto& item : menu) {
-            item->display();
-        }
+    const vector<MenuItem>& getMenu() const {
+        return menu;
     }
-    const vector<MenuItem*>& getMenuItems() const { return menuItems; }
 };
+
+int Restaurant::nextRestaurantId = 0;
 
 #endif // RESTAURANT_H

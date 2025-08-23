@@ -1,32 +1,30 @@
-#ifndef DELIVERYORDER_H
-#define DELIVERYORDER_H
-
-#include <bits/stdc++.h>
-using namespace std;
+#ifndef DELIVERY_ORDER_H
+#define DELIVERY_ORDER_H
 
 #include "Order.h"
+using namespace std;
 
 class DeliveryOrder : public Order {
-    string deliveryAddress;
+private:
+    string userAddress;
 
 public:
-    // Constructor
-    DeliveryOrder(const string& address) : deliveryAddress(address) {}
+    DeliveryOrder() {
+        userAddress = "";
+    }
 
-    // Override base class method
     string getType() const override {
         return "Delivery";
     }
 
-    // Getter
-    string getDeliveryAddress() const {
-        return deliveryAddress;
+    //Getter and Setters
+    void setUserAddress(const string& addr) {
+        userAddress = addr;
     }
 
-    // Setter
-    void setDeliveryAddress(const string& address) {
-        deliveryAddress = address;
+    string getUserAddress() const {
+        return userAddress;
     }
 };
 
-#endif // DELIVERYORDER_H
+#endif // DELIVERY_ORDER_H

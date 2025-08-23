@@ -4,94 +4,104 @@
 #include <iostream>
 #include <string>
 #include <vector>
-using namespace std;
-
 #include "User.h"
 #include "Restaurant.h"
-#include "MenuItems.h"
-#include "Cart.h"
+#include "MenuItem.h"
 #include "../strategies/PaymentStrategy.h"
+#include "../utils/TimeUtils.h"
+using namespace std;
 
 class Order {
-private:
-    inline static int nextId = 1;   // ✅ requires C++17
-    int id;
+protected:
+    static int nextOrderId;
+    int orderId;
     User* user;
     Restaurant* restaurant;
-    Cart* cart;
-    vector<MenuItem*> items;
-    double totalAmount;
-    string status;       // "Pending", "Completed", "Cancelled"
-    string orderTime;    // In real code: <chrono> should be used
+    vector<MenuItem> items;
     PaymentStrategy* paymentStrategy;
-    string scheduledTime;   // for scheduled orders
+    double total;
+    string scheduled;
 
 public:
-    Order() 
-        : id(nextId++), user(nullptr), restaurant(nullptr), cart(nullptr),
-          totalAmount(0.0), status("Pending"), orderTime(""), 
-          paymentStrategy(nullptr), scheduledTime("") {}
+    Order() {
+        user = nullptr;
+        restaurant = nullptr;
+        paymentStrategy = nullptr;
+        total = 0.0;
+        scheduled = "";
+        orderId = ++nextOrderId;
+    }
 
     virtual ~Order() {
         delete paymentStrategy;
-        cout << "Order " << id << " destroyed." << endl;
     }
 
-    // Abstract type identifier
-    virtual string getType() const = 0;
-
-    // === Core ===
-    int getOrderId() const { return id; }
-
-    void setUser(User* u) { user = u; }
-    User* getUser() const { return user; }
-
-    void setRestaurant(Restaurant* r) { restaurant = r; }
-    Restaurant* getRestaurant() const { return restaurant; }
-
-    void setCart(Cart* c) { cart = c; }
-    Cart* getCart() const { return cart; }
-
-    void addItem(MenuItem* item) {
-        items.push_back(item);
-        totalAmount += item->getPrice();
-    }
-
-    void setItems(const vector<MenuItem*>& newItems) {
-        items = newItems;
-        totalAmount = 0.0;
-        for (auto* item : items) totalAmount += item->getPrice();
-    }
-    const vector<MenuItem*>& getItems() const { return items; }
-
-    // === Time & Status ===
-    void setOrderTime(const string& t) { orderTime = t; }
-    string getOrderTime() const { return orderTime; }
-
-    void setScheduled(const string& t) { scheduledTime = t; }
-    string getScheduled() { return scheduledTime; }
-    
-
-    string getStatus() const { return status; }
-    void setStatus(const string& s) { status = s; }
-
-    // === Payments ===
-    double getTotal() const { return totalAmount; }
-int getId() const { return id; }
-    void setTotalAmount(double amount) { totalAmount = amount; }
-
-    void setPaymentStrategy(PaymentStrategy* strategy) {
-        if (paymentStrategy != nullptr) delete paymentStrategy;
-        paymentStrategy = strategy;
-    }
-
-    bool processPayment(double amount) {
-        if (paymentStrategy == nullptr) {
-            cout << "Payment strategy not set." << endl;
+    bool processPayment() {
+        if (paymentStrategy) {
+            paymentStrategy->pay(total);
+            return true;
+        } else {
+            cout << "Please choose a payment mode first" << endl;
             return false;
         }
-        return paymentStrategy->pay(amount);
+    }
+
+    virtual string getType() const = 0;
+
+    //Getter and Setters
+    int getOrderId() const {
+        return orderId;
+    }
+
+    void setUser(User* u) {
+        user = u;
+    }
+
+    User* getUser() const {
+        return user;
+    }
+
+    void setRestaurant(Restaurant* r) {
+        restaurant = r;
+    }
+
+    Restaurant* getRestaurant() const {
+        return restaurant;
+    }
+
+    void setItems(const vector<MenuItem>& its) {
+        items = its;
+        total = 0;
+        for (auto &i : items) {
+            total += i.getPrice();
+        }
+    }
+
+    const vector<MenuItem>& getItems() const {
+        return items;
+    }
+
+    void setPaymentStrategy(PaymentStrategy* p) {
+        paymentStrategy = p;
+    }
+
+    void setScheduled(const string& s) {
+        scheduled = s;
+    }
+
+    string getScheduled() const {
+        return scheduled;
+    }
+
+    double getTotal() const {
+        return total;
+    }
+
+    void setTotal(int total) {
+        this->total = total;
     }
 };
+
+int Order::nextOrderId = 0;
 
 #endif // ORDER_H

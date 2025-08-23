@@ -1,49 +1,52 @@
-#ifndef TOMATOAPP_H
-#define TOMATOAPP_H
+#ifndef TOMATO_APP_H
+#define TOMATO_APP_H
 
-#include <bits/stdc++.h>
-using namespace std;
-
+#include <vector>
+#include <string>
 #include "models/User.h"
 #include "models/Restaurant.h"
 #include "models/Cart.h"
 #include "managers/RestaurantManager.h"
 #include "managers/OrderManager.h"
 #include "strategies/PaymentStrategy.h"
-#include "strategies/UPIStrategy.h"
+#include "strategies/UpiPaymentStrategy.h"
 #include "factories/NowOrderFactory.h"
 #include "factories/ScheduledOrderFactory.h"
 #include "services/NotificationService.h"
 #include "utils/TimeUtils.h"
+using namespace std;
 
 class TomatoApp {
 public:
     TomatoApp() {
-        initialize();
+        initializeRestaurants();
     }
 
-    void initialize() {
-        Restaurant* restaurant1 = new Restaurant("Pasta Palace", "123 Main St");
-        restaurant1->addMenuItem(new MenuItem("Spaghetti", 12.99));
-        restaurant1->addMenuItem(new MenuItem("Fettuccine Alfredo", 14.99));
+    void initializeRestaurants() {
+        Restaurant* restaurant1 = new Restaurant("Bikaner", "Delhi");
+        restaurant1->addMenuItem(MenuItem("P1", "Chole Bhature", 120));
+        restaurant1->addMenuItem(MenuItem("P2", "Samosa", 15));
 
-        Restaurant* restaurant2 = new Restaurant("Burger Barn", "456 Elm St");
-        restaurant2->addMenuItem(new MenuItem("Classic Burger", 10.99));
-        restaurant2->addMenuItem(new MenuItem("Cheese Burger", 11.99));
+        Restaurant* restaurant2 = new Restaurant("Haldiram", "Kolkata");
+        restaurant2->addMenuItem(MenuItem("P1", "Raj Kachori", 80));
+        restaurant2->addMenuItem(MenuItem("P2", "Pav Bhaji", 100));
+        restaurant2->addMenuItem(MenuItem("P3", "Dhokla", 50));
 
-        Restaurant* restaurant3 = new Restaurant("Sushi Spot", "789 Oak St");
-        restaurant3->addMenuItem(new MenuItem("California Roll", 8.99));
-        restaurant3->addMenuItem(new MenuItem("Spicy Tuna Roll", 9.99));
+        Restaurant* restaurant3 = new Restaurant("Saravana Bhavan", "Chennai");
+        restaurant3->addMenuItem(MenuItem("P1", "Masala Dosa", 90));
+        restaurant3->addMenuItem(MenuItem("P2", "Idli Vada", 60));
+        restaurant3->addMenuItem(MenuItem("P3", "Filter Coffee", 30));
 
         RestaurantManager* restaurantManager = RestaurantManager::getInstance();
         restaurantManager->addRestaurant(restaurant1);
         restaurantManager->addRestaurant(restaurant2);
         restaurantManager->addRestaurant(restaurant3);
+
+        // Add other sample restaurants...
     }
 
-    vector<Restaurant*> searchRestaurantsByLocation(const string& location) {
-        RestaurantManager* restaurantManager = RestaurantManager::getInstance();
-        return restaurantManager->getByLocation(location);
+    vector<Restaurant*> searchRestaurants(const string& location) {
+        return RestaurantManager::getInstance()->searchByLocation(location);
     }
 
     void selectRestaurant(User* user, Restaurant* restaurant) {
@@ -51,77 +54,63 @@ public:
         cart->setRestaurant(restaurant);
     }
 
-    void addItemsToCart(User* user, int itemId) {
-        Cart* cart = user->getCart();
-        if (cart->getRestaurant() == nullptr) {
+    void addToCart(User* user, const string& itemCode) {
+        Restaurant* restaurant = user->getCart()->getRestaurant();
+        if (!restaurant) {
             cout << "Please select a restaurant first." << endl;
             return;
         }
-        for (auto item : cart->getRestaurant()->getMenuItems()) {
-            if (item->getId() == itemId) {
-                cart->addItem(item);
-                cout << item->getName() << " added to cart." << endl;
-                return;
+        for (const auto& item : restaurant->getMenu()) {
+            if (item.getCode() == itemCode) {
+                user->getCart()->addItem(item);
+                break;
             }
         }
-        // 🔴 BUG FIX: Your code printed "Item not found" for *every* non-matching item.
-        cout << "Item not found." << endl;
     }
 
-    Order* checkOutNow(User* user, PaymentStrategy* paymentStrategy, const string& orderType) {
-        return checkOut(user, paymentStrategy, orderType, new NowOrderFactory());
+    Order* checkoutNow(User* user, const string& orderType, PaymentStrategy* paymentStrategy) {
+        return checkout(user, orderType, paymentStrategy, new NowOrderFactory());
     }
 
-    Order* scheduleOrder(User* user, PaymentStrategy* paymentStrategy, const string& orderType, const string& scheduleTime) {
-        return checkOut(user, paymentStrategy, orderType, new ScheduledOrderFactory(scheduleTime));
+    Order* checkoutScheduled(User* user, const string& orderType, PaymentStrategy* paymentStrategy, const string& scheduleTime) {
+        return checkout(user, orderType, paymentStrategy, new ScheduledOrderFactory(scheduleTime));
     }
 
-    Order* checkOut(User* user, PaymentStrategy* paymentStrategy, const string& orderType, OrderFactory* orderFactory) {
-        Cart* cart = user->getCart();
-        if (cart->getItems().empty()) {
-            cout << "Cart is empty. Please add items to cart before checkout." << endl;
-            return nullptr;
-        }
+    Order* checkout(User* user, const string& orderType, 
+        PaymentStrategy* paymentStrategy, OrderFactory* orderFactory) {
+        if (user->getCart()->isEmpty())
+        return nullptr;
 
-        double totalAmount = 0.0;
-        for (auto item : cart->getItems()) {
-            totalAmount += item->getPrice();
-        }
+        Cart* userCart = user->getCart();
+        Restaurant* orderedRestaurant = userCart->getRestaurant();
+        vector<MenuItem> itemsOrdered = userCart->getItems();
+        double totalCost = userCart->getTotalCost();
 
-        Restaurant* restaurant = cart->getRestaurant();
-        vector<MenuItem*> items = cart->getItems();
-
-        Order* order = orderFactory->createOrder(*user, restaurant, cart, items, paymentStrategy, totalAmount, orderType);
-
-        OrderManager* orderManager = OrderManager::getInstance();
-        orderManager->addOrder(order);
-
-        NotificationService::sendNotification(*user, "Order placed successfully. Order ID: " + to_string(order->getId()));
-
-        cart->clear();
+        Order* order = orderFactory->createOrder(user, userCart, orderedRestaurant, itemsOrdered, paymentStrategy, totalCost, orderType);
+        OrderManager::getInstance()->addOrder(order);
         return order;
     }
 
-    void payForOrder(Order* order, User* user) {
-        if (!order) {
-            cout << "No order to pay for." << endl;
-            return;
-        }
+    void payForOrder(User* user, Order* order) {
+        bool isPaymentSuccess = order->processPayment();
 
-        bool isPaid = order->processPayment(order->getTotalAmount()); // ✅ pass amount
-        if (isPaid) {
-            order->setStatus("Paid");
-            NotificationService::sendNotification(*user, "Payment successful for Order ID: " + to_string(order->getId()));
-        } else {
-            order->setStatus("Payment Failed");
-            NotificationService::sendNotification(*user, "Payment failed for Order ID: " + to_string(order->getId()));
-        }
+        // clear user cart if payment is successful.
+        if(isPaymentSuccess) {
+            NotificationService* notification = new NotificationService();
+            notification->notify(order);
+            user->getCart()->clear();
+        }  
     }
 
-    void printusercart(User* user) {
-        Cart* cart = user->getCart();
-        cart->display();
+    void printUserCart(User* user) {
+        cout << "Items in cart:" << endl;
+        cout << "------------------------------------" << endl;
+        for (const auto& item : user->getCart()->getItems()) {
+            cout << item.getCode() << " : " << item.getName() << " : ₹" << item.getPrice() << endl;
+        }
+        cout << "------------------------------------" << endl;
+        cout << "Grand total : ₹" << user->getCart()->getTotalCost() << endl;
     }
 };
 
-#endif // TOMATOAPP_H
+#endif // TOMATO_APP_H

@@ -1,33 +1,47 @@
-#include <bits/stdc++.h>
-using namespace std;
+#include <iostream>
 #include "TomatoApp.h"
+using namespace std;
 
+int main() {
+    // Create TomatoApp Object
+    TomatoApp* tomato = new TomatoApp();
 
-int main(){
+    // Simulate a user coming in (Happy Flow)
+    User* user = new User(101, "Aditya", "Delhi");
+    cout << "User: " << user->getName() << " is active." << endl;
 
-    TomatoApp* app = new TomatoApp();
-    User* user = new User("John Doe", "john@example.com", "123 Main St");
-    // user creation
+    // User searches for restaurants by location
+    vector<Restaurant*> restaurantList = tomato->searchRestaurants("Delhi");
 
-    vector<Restaurant*> restaurants = app->searchRestaurantsByLocation("123 Main St");
-    cout << "Restaurants in your area:" << endl;
-    for (const auto& rest : restaurants) {
-        cout << rest->getId() << ": " << rest->getName() << " - " << rest->getLocation() << endl;
+    if (restaurantList.empty()) {
+        cout << "No restaurants found!" << endl;
+        return 0;
     }
-    // select a restaurant
-    if (!restaurants.empty()) {
-        app->selectRestaurant(user, restaurants[0]);
-        restaurants[0]->displayMenu();
+    cout << "Found Restaurants:" << endl;
+    for (auto restaurant : restaurantList) {
+        cout << " - " << restaurant->getName() << endl;
     }
-    app->printUserCart(user);
-    Order* order = app->checkOutNow(user, new CreditCard(), "Delivery");
-    if(order) {
-        cout << "Order ID: " << order->getId() << " placed successfully." << endl;
-    }   
 
-    app->payForOrder(order, user);
-    delete app;
+    // User selects a restaurant
+    tomato->selectRestaurant(user, restaurantList[0]);
+
+    cout << "Selected restaurant: " << restaurantList[0]->getName() << endl;
+
+    // User adds items to the cart
+    tomato->addToCart(user, "P1");
+    tomato->addToCart(user, "P2");
+
+    tomato->printUserCart(user);
+
+    // User checkout the cart
+    Order* order = tomato->checkoutNow(user, "Delivery", new UpiPaymentStrategy("1234567890"));
+    
+    // User pay for the cart. If payment is success, notification is sent.
+    tomato->payForOrder(user, order);
+
+    // Cleanup Code.
+    delete tomato;
     delete user;
- 
+    
     return 0;
 }

@@ -1,61 +1,60 @@
 #ifndef CART_H
 #define CART_H
 
-#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <string>
+#include "../models/MenuItem.h"
+#include "../models/Restaurant.h"
+
 using namespace std;
-#include "Restaurant.h"
 
 class Cart {
 private:
     Restaurant* restaurant;
-    vector<MenuItem*> items;
+    vector<MenuItem> items;
 
 public:
-    Cart() : restaurant(nullptr) {}
+    Cart() {
+        restaurant = nullptr;
+    }
 
-    void setRestaurant(Restaurant* rest) {
-        restaurant = rest;
+    void addItem(const MenuItem& item) {
+        if (!restaurant) {
+            cerr << "Cart: Set a restaurant before adding items." << endl;
+            return;
+        }
+        items.push_back(item);
+    }
+
+    double getTotalCost() const {
+        double sum = 0;
+        for (const auto& it : items) {
+            sum += it.getPrice();
+        }
+        return sum;
+    }
+
+    bool isEmpty() {
+        return (!restaurant || items.empty());
+    }
+
+    void clear() {
+        items.clear();
+        restaurant = nullptr;
+    }
+
+    // Getters and Setters
+    void setRestaurant(Restaurant* r) {
+        restaurant = r;
     }
 
     Restaurant* getRestaurant() const {
         return restaurant;
     }
 
-    void addItem(MenuItem* item) {
-        if (restaurant == nullptr) {
-            cout << "Set a restaurant before adding items to the cart." << endl;
-            return;
-        }
-        items.push_back(item);
-    }
-
-    void display() const {
-        cout << "Cart Items:" << endl;
-        for (const auto& item : items) {
-            item->display();
-        }
-    }
-
-    void clear() {
-        items.clear();
-    }
-
-    vector<MenuItem*> getItems() const {
+    const vector<MenuItem>& getItems() const {
         return items;
-    }
-
-    double getTotal() const {
-        double total = 0.0;
-        for (const auto& item : items) {
-            total += item->getPrice();
-        }
-        return total;
-    }
-
-    ~Cart() {
-        for (auto item : items) {
-            delete item;
-        }
     }
 };
 

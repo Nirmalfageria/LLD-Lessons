@@ -1,47 +1,47 @@
-#ifndef RESTAURANTMANAGER_H
-#define RESTAURANTMANAGER_H
+#ifndef RESTAURANT_MANAGER_H
+#define RESTAURANT_MANAGER_H
 
+#include <vector>
+#include <string>
+#include <algorithm>
 #include "../models/Restaurant.h"
-#include <bits/stdc++.h>
 using namespace std;
 
 class RestaurantManager {
+private:
     vector<Restaurant*> restaurants;
+    static RestaurantManager* instance;
 
-    // Private constructor for singleton
-    RestaurantManager() {}
+    RestaurantManager() {
+        // private constructor
+    }
 
 public:
-    // Delete copy/move to enforce singleton
-    RestaurantManager(const RestaurantManager&) = delete;
-    RestaurantManager& operator=(const RestaurantManager&) = delete;
-
     static RestaurantManager* getInstance() {
-        static RestaurantManager instance; // C++11 thread-safe
-        return &instance;
+        if (!instance) {
+            instance = new RestaurantManager();
+        }
+        return instance;
     }
 
-    void addRestaurant(Restaurant* restaurant) {
-        restaurants.push_back(restaurant);
+    void addRestaurant(Restaurant* r) {
+        restaurants.push_back(r);
     }
 
-    vector<Restaurant*> getByLocation(const string& location) {
+    vector<Restaurant*> searchByLocation(string loc) {
         vector<Restaurant*> result;
-
-        // Make a lowercase copy of location
-        string loc = location;
         transform(loc.begin(), loc.end(), loc.begin(), ::tolower);
-
-        for (auto& restaurant : restaurants) {
-            string restLocation = restaurant->getLocation();
-            transform(restLocation.begin(), restLocation.end(), restLocation.begin(), ::tolower);
-
-            if (restLocation == loc) {
-                result.push_back(restaurant);
+        for (auto r : restaurants) {
+            string rl = r->getLocation();
+            transform(rl.begin(), rl.end(), rl.begin(), ::tolower);
+            if (rl == loc) {
+                result.push_back(r);
             }
         }
         return result;
     }
 };
 
-#endif // RESTAURANTMANAGER_H
+RestaurantManager* RestaurantManager::instance = nullptr;
+
+#endif // RESTAURANT_MANAGER_H

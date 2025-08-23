@@ -1,58 +1,48 @@
 #ifndef USER_H
 #define USER_H
 
-#include <iostream>
 #include <string>
 #include "Cart.h"
 using namespace std;
 
 class User {
 private:
-    inline static int nextId = 1;   // ✅ works in C++17+
-    int id;
+    int userId;
     string name;
     string address;
-    string email;
     Cart* cart;
 
 public:
-    User(string name, string email, string address)
-        : name(name), email(email), address(address) {
-        this->id = nextId++;
+    User(int userId, const string& name, const string& address) {
+        this->userId = userId;
+        this->name = name;
+        this->address = address;
         cart = new Cart();
     }
 
-    int getId() const {
-        return id;
+    ~User() {
+        delete cart;
     }
 
+    // Getters and Setters
     string getName() const {
         return name;
     }
 
-    string getEmail() const {
-        return email;
+    void setName(const string &n) {
+        name = n;
     }
 
     string getAddress() const {
         return address;
     }
 
-    void setAddress(const string& newAddress) {
-        address = newAddress;
-    }
-
-    void display() const {
-        cout << id << ": " << name << " - " << email << endl;
+    void setAddress(const string &a) {
+        address = a;
     }
 
     Cart* getCart() const {
         return cart;
-    }
-
-    ~User() {
-        delete cart;
-        cout << "User " << name << " destroyed." << endl;
     }
 };
 
