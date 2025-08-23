@@ -18,6 +18,7 @@
         for(auto item : menu) {
             delete item;
         }
+        cout << "Restaurant " << name << " destroyed." << endl;
     }
     int getId() const {
         return id;
